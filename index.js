@@ -1,35 +1,35 @@
-import express from 'express';
-import TelegramBot from 'node-telegram-bot-api';
+import express from "express";
+import TelegramBot from "node-telegram-bot-api";
 
-const TOKEN = '8456865406:AAGqqDLt4PpMf5QrDEPr7dDXymtTb_eN1_o';
-const WEBHOOK_URL = 'https://qfox-bot.onrender.com/webhook/' + TOKEN;
+const TOKEN = "8456865406:AAGqqDLt4PpMf5QrDEPr7dDXymtTb_eN1_o";
+const WEBHOOK_URL = "https://qfox-bot.onrender.com/webhook/" + TOKEN;
 
 const app = express();
 app.use(express.json());
 
-// Создаём бота в режиме WEBHOOK
-const bot = new TelegramBot(TOKEN, { webHook: { port: process.env.PORT } });
+const bot = new TelegramBot(TOKEN, { webHook: true });
 
-// Устанавливаем вебхук
+// Настраиваем вебхук
 bot.setWebHook(WEBHOOK_URL);
 
-// Маршрут, который Telegram вызывает
-app.post(`/webhook/${TOKEN}`, (req, res) => {
-    bot.processWebhookUpdate(req.body);
-    res.sendStatus(200);
+// Корневой маршрут чтобы не было "Cannot GET /"
+app.get("/", (req, res) => {
+  res.send("Bot is running!");
 });
 
-// Тестовый маршрут
-app.get('/', (req, res) => {
-    res.send("Bot is running.");
+// Маршрут вебхука
+app.post("/webhook/" + TOKEN, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
 });
 
-// Логика бота
-bot.on('message', msg => {
-    bot.sendMessage(msg.chat.id, "Бот работает, получено сообщение!");
+// Обработка сообщения
+bot.on("message", (msg) => {
+  bot.sendMessage(msg.chat.id, "Привет! Бот работает!");
 });
 
-// Запуск Express (Render сам назначает порт)
-app.listen(process.env.PORT, () => {
-    console.log("Server started on port " + process.env.PORT);
+// Запуск сервера
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("Server started on port", PORT);
 });
