@@ -15,7 +15,7 @@ bot.setMyCommands([
 ]);
 
 // Приём webhook от Telegram
-app.post(`/webhook/bot`, (req, res) => {
+app.post(`/webhook/${token}`, (req, res) => {
   bot.processWebhookUpdate(req.body);
   res.sendStatus(200);
 });
