@@ -7,8 +7,8 @@ const db = low(adapter);
 const _ = require('lodash');
 
 // Настройки
-const BOT_TOKEN = 'ТОКЕН_ОТ_BOTFATHER';
-const WEBHOOK_URL = 'https://твой-бот.onrender.com';
+const BOT_TOKEN = '8456865406:AAGqqDLt4PpMf5QrDEPr7dDXymtTb_eN1_o';
+const WEBHOOK_URL = 'https://strong-hamster-1f1528.netlify.app/';
 const PREMIUM_PRICE_STARS = 500; // цена подписки на месяц в Stars
 const FREE_DAILY_LIMIT = 15;     // бесплатных сообщений в день
 
