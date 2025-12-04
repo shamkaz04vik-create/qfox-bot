@@ -76,9 +76,9 @@ bot.on('text', async (ctx) => {
 
     try {
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-            model: "openrouter/auto",  
+            model: "openrouter/auto",
             messages: [
-                { role: "system", content: "Ты — полезный и остроумный помощник по имени Quantum Fox. Отвечай на русском языке." },
+                { role: "system", content: "Ты — полезный и остроумный помощник по имени Quantum Fox. Отвечай на русском языке в дружелюбном стиле." },
                 { role: "user", content: ctx.message.text }
             ]
         }, {
@@ -95,7 +95,7 @@ bot.on('text', async (ctx) => {
 
     } catch (error) {
         console.error(error.response?.data || error);
-        await ctx.reply('Извини, что-то пошло не так 😔 Попробуй позже.');
+        await ctx.reply('Извини, временная ошибка с ИИ 😔 Попробуй через минуту.');
     }
 });
 
