@@ -76,7 +76,7 @@ bot.on('text', async (ctx) => {
 
     try {
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-           model: "meituan/longcat-flash-chat:free",
+            model: "openrouter/auto",  // ← это главное изменение, теперь всегда работает
             messages: [
                 { role: "system", content: "Ты — полезный и остроумный помощник по имени Quantum Fox. Отвечай на русском языке в дружелюбном стиле." },
                 { role: "user", content: ctx.message.text }
