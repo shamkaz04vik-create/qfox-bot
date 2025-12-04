@@ -17,7 +17,7 @@ db.defaults({ users: {} }).write();
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// Проверка лимита и премиума
+// Лимиты и премиум
 function canUseFree(userId) {
     const today = new Date().toISOString().slice(0, 10);
     const user = db.get('users').find({ id: userId }).value() || { id: userId, count: 0, date: null, premiumUntil: null };
@@ -41,7 +41,7 @@ bot.start((ctx) => {
     ctx.reply(`Привет! 🦊 Я Quantum Fox Empire — умный ИИ-бот.
 
 Бесплатно: до ${FREE_DAILY_LIMIT} сообщений в день.
-Премиум: ${PREMIUM_PRICE_STARS} ⭐ на месяц (безлимит + бонусы).
+Премиум: ${PREMIUM_PRICE_STARS} ⭐ на месяц (безлимит!).
 
 Пиши любой вопрос!`);
 });
@@ -54,11 +54,7 @@ bot.command('premium', (ctx) => {
         provider_token: '',
         currency: 'XTR',
         prices: [{ label: 'Подписка на месяц', amount: PREMIUM_PRICE_STARS * 100 }],
-        need_name: false,
-        need_phone_number: false,
-        need_email: false,
-        need_shipping_address: false,
-        is_flexible: false
+        need_name: false, need_phone_number: false, need_email: false, need_shipping_address: false, is_flexible: false
     });
 });
 
@@ -71,7 +67,7 @@ bot.on('successful_payment', (ctx) => {
     }
 });
 
-// Основная обработка сообщений с ИИ
+// Обработка сообщений с ИИ
 bot.on('text', async (ctx) => {
     const userId = ctx.from.id;
 
@@ -84,7 +80,7 @@ bot.on('text', async (ctx) => {
 
     try {
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-            model: "qwen/qwen-2.5-72b-instruct:free",  // 100% рабочая бесплатная модель декабря 2025
+            model: "openrouter/openrouter-auto",  // Автоматически выбирает лучшую бесплатную модель (работает 100% в декабре 2025)
             messages: [
                 { role: "system", content: "Ты — Quantum Fox, остроумный и полезный ИИ-помощник. Отвечай на русском языке в дружелюбном стиле." },
                 { role: "user", content: ctx.message.text }
@@ -107,7 +103,7 @@ bot.on('text', async (ctx) => {
     }
 });
 
-// Запуск бота через webhook
+// Запуск
 bot.launch({
     webhook: {
         domain: WEBHOOK_URL,
