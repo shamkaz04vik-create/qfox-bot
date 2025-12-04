@@ -4,113 +4,89 @@ const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync('db.json');
 const db = low(adapter);
-const _ = require('lodash');
-
-// Настройки
+const _ = require('
 const BOT_TOKEN = '8456865406:AAGqqDLt4PpMf5QrDEPr7dDXymtTb_eN1_o';
-const WEBHOOK_URL = 'https://strong-hamster-1f1528.netlify.app/';
-const PREMIUM_PRICE_STARS = 500; // цена подписки на месяц в Stars
-const FREE_DAILY_LIMIT = 15;     // бесплатных сообщений в день
+const WEBHOOK_URL = 'https://qfox-bot-1.onrender.com';
+const OPENROUTER_KEY = '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';
 
-// Инициализация БД
+const PREMIUM_PRICE_STARS = 500;
+const FREE_DAILY_LIMIT = 15;
+
 db.defaults({ users: {} }).write();
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// Проверка, премиум ли пользователь или есть ли бесплатные сообщения сегодня
 function canUseFree(userId) {
     const today = new Date().toISOString().slice(0, 10);
     const user = db.get('users').find({ id: userId }).value() || { id: userId, count: 0, date: null, premiumUntil: null };
 
-    if (user.premiumUntil && new Date(user.premiumUntil) > new Date()) {
-        return true; // премиум активен
-    }
+    if (user.premiumUntil && new Date(user.premiumUntil) > new Date()) return true;
 
     if (user.date !== today) {
-        // новый день — сбрасываем счётчик
         db.get('users').remove({ id: userId }).write();
         db.get('users').push({ id: userId, count: 0, date: today }).write();
         return true;
     }
-
     return user.count < FREE_DAILY_LIMIT;
 }
 
-// Увеличение счётчика
 function incrementUsage(userId) {
-    const today = new Date().toISOString().slice(0, 10);
-    db.get('users')
-        .find({ id: userId })
-        .assign({ count: _.get(db.get('users').find({ id: userId }).value(), 'count', 0) + 1 })
-        .write();
+    db.get('users').find({ id: userId }).assign({ count: _.get(db.get('users').find({ id: userId }).value(), 'count', 0) + 1 }).write();
 }
 
-// При /start
 bot.start((ctx) => {
-    ctx.reply(`Привет! 👋 Я умный ИИ-бот на базе DeepSeek.
+    ctx.reply(`Привет! 👋 Я умный ИИ-бот Quantum Fox Empire на базе DeepSeek.
 
 Бесплатно: до ${FREE_DAILY_LIMIT} сообщений в день.
-Премиум-подписка (безлимит + бонусы): ${PREMIUM_PRICE_STARS} ⭐ на месяц.
+Премиум: ${PREMIUM_PRICE_STARS} ⭐ на месяц (безлимит + бонусы).
 
 Пиши любой вопрос!`);
 });
 
-// Команда /premium — показывает кнопку оплаты
 bot.command('premium', (ctx) => {
     ctx.replyWithInvoice({
         title: 'Премиум-подписка на месяц',
-        description: 'Безлимитные запросы к ИИ, приоритетные ответы и будущие плюшки 🚀',
-        payload: `premium_${ctx.from.id}`, // уникальный payload
-        provider_token: '', // для Stars оставляем пустым
-        currency: 'XTR', // Telegram Stars
-        prices: [{ label: 'Подписка на месяц', amount: PREMIUM_PRICE_STARS * 100 }], // amount в минимальных единицах
-        need_name: false,
-        need_phone_number: false,
-        need_email: false,
-        need_shipping_address: false,
-        is_flexible: false
+        description: 'Безлимитные запросы к ИИ, приоритет и будущие плюшки 🚀',
+        payload: `premium_${ctx.from.id}`,
+        provider_token: '',
+        currency: 'XTR',
+        prices: [{ label: 'Подписка на месяц', amount: PREMIUM_PRICE_STARS * 100 }],
+        need_name: false, need_phone_number: false, need_email: false, need_shipping_address: false, is_flexible: false
     });
 });
 
-// Обработка успешной оплаты
 bot.on('successful_payment', (ctx) => {
     if (ctx.message.successful_payment.invoice_payload.startsWith('premium_')) {
         const monthLater = new Date();
         monthLater.setMonth(monthLater.getMonth() + 1);
-
-        db.get('users')
-            .find({ id: ctx.from.id })
-            .assign({ premiumUntil: monthLater.toISOString() })
-            .write();
-
-        ctx.reply('Спасибо за покупку! 🔥 Теперь у тебя безлимитный премиум на месяц. Пиши сколько угодно!');
+        db.get('users').find({ id: ctx.from.id }).assign({ premiumUntil: monthLater.toISOString() }).write();
+        ctx.reply('Спасибо! 🔥 Теперь у тебя безлимитный премиум на месяц!');
     }
 });
 
-// Основной обработчик сообщений
 bot.on('text', async (ctx) => {
     const userId = ctx.from.id;
 
     if (!canUseFree(userId)) {
-        return ctx.reply(`Лимит бесплатных сообщений на сегодня исчерпан 😔\n\nКупи премиум за ${PREMIUM_PRICE_STARS} ⭐ и пользуйся без ограничений! /premium`);
+        return ctx.reply(`Лимит на сегодня исчерпан 😔\nКупи премиум за ${PREMIUM_PRICE_STARS} ⭐ — /premium`);
     }
 
     incrementUsage(userId);
-
     await ctx.replyWithChatAction('typing');
 
     try {
-        const response = await axios.post('https://api.deepseek.com/chat/completions', {
-            model: "deepseek-chat",
+        const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+            model: "deepseek/deepseek-chat:free",
             messages: [
-                { role: "system", content: "Ты — полезный и остроумный помощник. Отвечай на русском языке." },
+                { role: "system", content: "Ты — полезный и остроумный помощник по имени Quantum Fox. Отвечай на русском языке." },
                 { role: "user", content: ctx.message.text }
-            ],
-            stream: false
+            ]
         }, {
             headers: {
-                'Authorization': 'Bearer sk-free',
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${OPENROUTER_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://quantum-fox-empire.com', // можно любой текст
+                'X-Title': 'Quantum Fox Empire Bot'
             }
         });
 
@@ -118,18 +94,17 @@ bot.on('text', async (ctx) => {
         await ctx.reply(answer);
 
     } catch (error) {
-        console.error(error);
+        console.error(error.response?.data || error);
         await ctx.reply('Извини, что-то пошло не так 😔 Попробуй позже.');
     }
 });
 
-// Запуск на webhook
 bot.launch({
     webhook: {
         domain: WEBHOOK_URL,
         port: process.env.PORT || 3000
     }
-}).then(() => console.log('Бот запущен с монетизацией!'));
+}).then(() => console.log('Бот запущен!'));
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
