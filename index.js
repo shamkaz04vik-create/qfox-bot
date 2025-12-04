@@ -76,7 +76,7 @@ bot.on('text', async (ctx) => {
 
     try {
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-            model: "openrouter/auto",
+           model: "meituan/longcat-flash-chat:free",
             messages: [
                 { role: "system", content: "Ты — полезный и остроумный помощник по имени Quantum Fox. Отвечай на русском языке в дружелюбном стиле." },
                 { role: "user", content: ctx.message.text }
