@@ -76,7 +76,7 @@ bot.on('text', async (ctx) => {
 
     try {
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-            model: "deepseek/deepseek-chat:free",
+            model: "openrouter/auto",  // ← теперь эта строка — самый надёжный вариант в декабре 2025
             messages: [
                 { role: "system", content: "Ты — полезный и остроумный помощник по имени Quantum Fox. Отвечай на русском языке." },
                 { role: "user", content: ctx.message.text }
@@ -85,7 +85,7 @@ bot.on('text', async (ctx) => {
             headers: {
                 'Authorization': `Bearer ${OPENROUTER_KEY}`,
                 'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://quantum-fox-empire.com', // можно любой текст
+                'HTTP-Referer': 'https://quantum-fox-empire.com',
                 'X-Title': 'Quantum Fox Empire Bot'
             }
         });
